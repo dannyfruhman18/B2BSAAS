@@ -51,8 +51,12 @@ See `PLAN.md` §4 for the three options and the recommendation.
 
 - [x] Skills read, free-tier claims re-verified (`FINDINGS.md`)
 - [x] Refined final plan written (`PLAN.md`)
-- [ ] **Awaiting your decisions:** trading name · pilot sector+region · email approach
-- [ ] `SETUP.md` — Oracle Cloud → Docker → n8n (Phase 1)
+- [x] **Decisions made:** trading name = **Brightwick** · email = **Option A**
+      (build to £0, add mailbox at go-live) · pilot sector/region = **deferred**
+      to the scrape stage (kept open)
+- [x] `SETUP.md` — Oracle Cloud → Docker → n8n (Phase 1) — **ready for you to follow**
+- [ ] You complete Phase 1 (reach Checkpoint F in `SETUP.md`)
+- [ ] Phase 2: sole-trader reg + ICO fee + domain + Companies House
 - [ ] Build stages 1–5 (one at a time, stop-and-test after each)
 
 ## Repo layout

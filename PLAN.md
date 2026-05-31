@@ -200,12 +200,14 @@ email. React + Tailwind on Cloudflare Pages, reading Supabase.
 
 ---
 
-## 10. Open decisions blocking the next step
+## 10. Decisions made (31 May 2026)
 
-1. **Trading name** — pick from §2 (or propose your own).
-2. **Pilot sector + region** — e.g. "plumbing companies in West Yorkshire".
-   (Pick a sector that skews limited-company, not sole-trader, for a fuller
-   legal pool — trades-as-Ltd, hospitality, professional services all work.)
-3. **Email approach** — A, B, or C from §4.
+1. **Trading name → Brightwick.** (`brightwick.co.uk` doesn't currently resolve —
+   a weak positive signal; confirm availability at registrar checkout. Fallbacks:
+   `brightwickdigital.co.uk`, `brightwick.studio`.)
+2. **Pilot sector + region → deferred.** Kept open; we choose at the scrape stage
+   (build order step 4). Aim for a limited-company-heavy sector then.
+3. **Email approach → Option A** (build to £0; add a ~£5–6/mo mailbox only at
+   go-live; the sender stays a swappable module).
 
-Once these are set, I'll finalise `SETUP.md` and you start Phase 1.
+`SETUP.md` (Phase 1) is written and ready to follow.
