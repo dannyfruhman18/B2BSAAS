@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brightwick Dashboard — Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --teal: #00d4aa;
+    --teal-light: #33ddb8;
+    --amber: #f59e0b;
+    --red: #f87171;
+    --text: #ffffff;
+    --muted: rgba(255,255,255,0.45);
+    --border: rgba(255,255,255,0.06);
+  }
+  html, body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+  /* Preview banner */
+  .preview-banner {
+    background: linear-gradient(90deg, #f59e0b22, #f59e0b11);
+    border-bottom: 1px solid #f59e0b44;
+    padding: 10px 16px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: #f59e0b;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .preview-banner strong { font-weight: 600; }
+
+  /* Layout */
+  .app { display: flex; flex-direction: column; min-height: 100vh; max-width: 430px; margin: 0 auto; position: relative; }
+  @media (min-width: 768px) { .app { max-width: 100%; flex-direction: row; } }
+
+  /* Bottom nav (mobile) */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; max-width: 430px; margin: 0 auto;
+    background: rgba(22,33,62,0.95); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-around; align-items: center;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    z-index: 50;
+  }
+  @media (min-width: 768px) { .bottom-nav { display: none; } }
+  .nav-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 16px; border: none; background: none; cursor: pointer;
+    color: var(--muted); font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-btn.active { color: var(--teal); }
+  .nav-btn .icon { font-size: 20px; line-height: 1; }
+
+  /* Sidebar (desktop) */
+  .sidebar {
+    display: none;
+    width: 220px; flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 32px 16px;
+    position: sticky; top: 40px; height: calc(100vh - 40px);
+    flex-direction: column; gap: 4px;
+  }
+  @media (min-width: 768px) { .sidebar { display: flex; } }
+  .sidebar-logo { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 18px; color: var(--teal); padding: 8px 12px 24px; }
+  .sidebar-btn {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border: none; background: none; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+    color: var(--muted); border-radius: 12px; transition: all 0.2s; width: 100%; text-align: left;
+  }
+  .sidebar-btn.active { background: rgba(0,212,170,0.12); color: var(--teal); }
+  .sidebar-btn:hover:not(.active) { background: rgba(255,255,255,0.04); color: var(--text); }
+
+  /* Content */
+  .content { flex: 1; padding: 24px 16px 100px; overflow-y: auto; }
+  @media (min-width: 768px) { .content { padding: 32px 32px 32px; max-width: 800px; } }
+
+  /* Pages */
+  .page { display: none; animation: fadeIn 0.25s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Typography */
+  .page-title { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 26px; margin-bottom: 4px; }
+  .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  h2 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; margin-bottom: 12px; }
+  .section-label { color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 20px; }
+  .card + .card { margin-top: 12px; }
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (min-width: 480px) { .card-grid.three { grid-template-columns: 1fr 1fr 1fr; } }
+
+  /* Stat card */
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; cursor: pointer; transition: border-color 0.2s; }
+  .stat-card:hover { border-color: rgba(0,212,170,0.3); }
+  .stat-label { color: var(--muted); font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .stat-value { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 36px; line-height: 1; }
+  .stat-sub { color: var(--muted); font-size: 11px; margin-top: 6px; }
+  .stat-card.teal .stat-value { color: var(--teal); }
+  .stat-card.amber .stat-value { color: var(--amber); }
+  .stat-card.red .stat-value { color: var(--red); }
+
+  /* Score badge */
+  .badge { display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; padding: 4px 10px; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13px; }
+  .badge.high { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+  .badge.mid { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+  .badge.low { background: rgba(0,212,170,0.15); color: #00d4aa; border: 1px solid rgba(0,212,170,0.25); }
+
+  /* Pipeline bar */
+  .pipeline-bar-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 20px; margin-bottom: 20px; }
+  .bar-track { height: 10px; border-radius: 99px; overflow: hidden; display: flex; gap: 2px; margin: 14px 0; }
+  .bar-seg { height: 100%; border-radius: 99px; }
+  .bar-legend { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  @media (min-width: 480px) { .bar-legend { grid-template-columns: repeat(6,1fr); } }
+  .bar-leg { text-align: center; }
+  .bar-leg-dot { width: 8px; height: 8px; border-radius: 50%; margin: 0 auto 4px; }
+  .bar-leg-label { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .bar-leg-val { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 18px; margin-top: 2px; }
+
+  /* Hot alert */
+  .hot-alert {
+    background: linear-gradient(135deg, rgba(248,113,113,0.12), rgba(248,113,113,0.06));
+    border: 1px solid rgba(248,113,113,0.3);
+    border-radius: 18px; padding: 16px; margin-bottom: 20px;
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+  @keyframes pulse-border { 0%,100% { box-shadow: 0 0 0 0 rgba(248,113,113,0); } 50% { box-shadow: 0 0 0 4px rgba(248,113,113,0.1); } }
+  .hot-alert-title { color: #f87171; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .hot-company { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .hot-company:last-child { border-bottom: none; padding-bottom: 0; }
+  .hot-company-name { font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px; }
+  .hot-company-meta { color: var(--muted); font-size: 12px; }
+  .call-btn { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); border-radius: 8px; padding: 4px 12px; font-family: 'Sora', sans-serif; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap; }
+
+  /* Monday banner */
+  .digest-banner { background: linear-gradient(90deg, rgba(0,212,170,0.12), rgba(0,212,170,0.06)); border: 1px solid rgba(0,212,170,0.2); border-radius: 16px; padding: 14px 16px; margin-bottom: 20px; }
+  .digest-title { color: var(--teal); font-family: 'Sora', sans-serif; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .digest-body { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  /* Lead list */
+  .lead-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 7px 14px; border-radius: 99px; font-family: 'Sora', sans-serif; font-weight: 600; font-size: 12px; cursor: pointer; border: none; background: rgba(255,255,255,0.06); color: var(--muted); transition: all 0.2s; }
+  .tab.active { background: var(--teal); color: #1a1a2e; }
+
+  .lead-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; display: flex; align-items: center; gap: 14px; }
+  .lead-card:hover { border-color: rgba(0,212,170,0.25); }
+  .lead-card.hot { border-color: rgba(248,113,113,0.3); animation: pulse-border 2s ease-in-out infinite; }
+  .lead-info { flex: 1; min-width: 0; }
+  .lead-name { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lead-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .lead-weakness { color: var(--muted); font-size: 12px; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .lead-time { color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 4px; }
+
+  /* Lead detail */
+  .back-btn { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; cursor: pointer; margin-bottom: 20px; border: none; background: none; transition: color 0.2s; }
+  .back-btn:hover { color: var(--text); }
+  .detail-header { margin-bottom: 20px; }
+  .company-title { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 24px; line-height: 1.2; margin-bottom: 4px; }
+  .company-meta { color: var(--muted); font-size: 13px; }
+  .score-bar-wrap { margin: 16px 0; }
+  .score-bar-track { height: 10px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+  .score-labels { display: flex; justify-content: space-between; margin-top: 6px; color: rgba(255,255,255,0.2); font-size: 10px; }
+
+  .weakness-box { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 14px; padding: 14px; margin-bottom: 16px; }
+  .weakness-label { color: var(--amber); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .weakness-text { color: rgba(255,255,255,0.8); font-size: 13px; line-height: 1.5; }
+
+  .email-preview { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
+  .email-header { padding: 12px 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+  .email-subject { font-weight: 600; font-size: 14px; }
+  .email-body { padding: 0 16px 14px; color: var(--muted); font-size: 13px; line-height: 1.6; white-space: pre-line; border-top: 1px solid var(--border); padding-top: 12px; }
+
+  .action-btn { width: 100%; padding: 16px; border-radius: 16px; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px; cursor: pointer; border: none; transition: all 0.2s; margin-bottom: 10px; }
+  .action-btn.won { background: var(--teal); color: #1a1a2e; }
+  .action-btn.won:hover { background: var(--teal-light); }
+  .action-btn.dead { background: transparent; border: 1px solid rgba(248,113,113,0.3); color: #f87171; }
+  .action-btn.dead:hover { background: rgba(248,113,113,0.06); }
+
+  /* Clients */
+  .mrr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .mrr-card { background: var(--surface); border-radius: 16px; padding: 18px; }
+  .mrr-card.teal { border: 1px solid rgba(0,212,170,0.25); }
+  .mrr-card:not(.teal) { border: 1px solid var(--border); }
+  .mrr-label { color: var(--muted); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .mrr-val { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 30px; }
+  .mrr-card.teal .mrr-val { color: var(--teal); }
+  .mrr-sub { color: var(--muted); font-size: 11px; margin-top: 6px; }
+
+  .client-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
+  .client-avatar { width: 46px; height: 46px; border-radius: 14px; background: rgba(0,212,170,0.12); border: 1px solid rgba(0,212,170,0.2); display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14px; color: var(--teal); flex-shrink: 0; }
+  .client-info { flex: 1; min-width: 0; }
+  .client-name { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; }
+  .client-contact { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .client-date { color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 6px; }
+  .client-mrr { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 20px; color: var(--teal); text-align: right; flex-shrink: 0; }
+  .client-mrr-sub { color: var(--muted); font-size: 10px; text-align: right; }
+
+  /* Quick actions */
+  .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 24px; }
+  .quick-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: border-color 0.2s; text-align: left; }
+  .quick-btn:hover { border-color: rgba(0,212,170,0.3); }
+  .quick-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .quick-label { font-family: 'Sora', sans-serif; font-weight: 600; font-size: 13px; }
+  .quick-sub { color: var(--muted); font-size: 11px; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  ⚠ <strong>PREVIEW MODE</strong> — Showing dummy data. The real dashboard connects to your live Oracle server. &nbsp;|&nbsp; Built by Brightwick pipeline
+</div>
+
+<div class="app">
+
+  <!-- Sidebar (desktop) -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">Brightwick</div>
+    <button class="sidebar-btn active" onclick="show('home',this)"><span>⊞</span> Dashboard</button>
+    <button class="sidebar-btn" onclick="show('leads',this)"><span>◎</span> Leads</button>
+    <button class="sidebar-btn" onclick="show('clients',this)"><span>★</span> Clients</button>
+    <button class="sidebar-btn" onclick="show('detail',this)"><span>⊙</span> Lead Detail</button>
+  </nav>
+
+  <!-- Content -->
+  <main class="content">
+
+    <!-- HOME PAGE -->
+    <div id="home" class="page active">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-sub">Brightwick Lead Pipeline</p>
+
+      <!-- Monday digest (always shown in preview) -->
+      <div class="digest-banner">
+        <div class="digest-title">✦ Weekly Digest</div>
+        <div class="digest-body">Good morning. You have <strong style="color:#fff">47 active leads</strong> in the pipeline, <strong style="color:#f87171">3 hot</strong> requiring calls, and <strong style="color:#00d4aa">2 won</strong> this cycle.</div>
+      </div>
+
+      <!-- Hot alert -->
+      <div class="hot-alert">
+        <div class="hot-alert-title">🔥 Hot Leads — call these now</div>
+        <div class="hot-company">
+          <div>
+            <div class="hot-company-name">Hartley Plumbing Ltd</div>
+            <div class="hot-company-meta">West Yorkshire · replied 14 min ago</div>
+          </div>
+          <button class="call-btn">📞 Call</button>
+        </div>
+        <div class="hot-company">
+          <div>
+            <div class="hot-company-name">Crestwood Electrical Ltd</div>
+            <div class="hot-company-meta">West Midlands · replied 2 hrs ago</div>
+          </div>
+          <button class="call-btn">📞 Call</button>
+        </div>
+        <div class="hot-company" style="padding-bottom:0; border:none;">
+          <div>
+            <div class="hot-company-name">Blue Ridge Hospitality LLP</div>
+            <div class="hot-company-meta">Greater Manchester · replied yesterday</div>
+          </div>
+          <button class="call-btn">📞 Call</button>
+        </div>
+      </div>
+
+      <!-- Pipeline bar -->
+      <div class="pipeline-bar-wrap">
+        <div class="section-label">Pipeline Overview</div>
+        <div class="bar-track">
+          <div class="bar-seg" style="flex:24; background:#00d4aa44;"></div>
+          <div class="bar-seg" style="flex:18; background:#00d4aa88;"></div>
+          <div class="bar-seg" style="flex:15; background:#00d4aa;"></div>
+          <div class="bar-seg" style="flex:12; background:#f59e0b;"></div>
+          <div class="bar-seg" style="flex:3; background:#f87171;"></div>
+          <div class="bar-seg" style="flex:2; background:#34d399;"></div>
+        </div>
+        <div class="bar-legend">
+          <div class="bar-leg"><div class="bar-leg-dot" style="background:#00d4aa44;"></div><div class="bar-leg-label">New</div><div class="bar-leg-val">24</div></div>
+          <div class="bar-leg"><div class="bar-leg-dot" style="background:#00d4aa88;"></div><div class="bar-leg-label">Qualified</div><div class="bar-leg-val">18</div></div>
+          <div class="bar-leg"><div class="bar-leg-dot" style="background:#00d4aa;"></div><div class="bar-leg-label">Personalised</div><div class="bar-leg-val">15</div></div>
+          <div class="bar-leg"><div class="bar-leg-dot" style="background:#f59e0b;"></div><div class="bar-leg-label">Outreach</div><div class="bar-leg-val">12</div></div>
+          <div class="bar-leg"><div class="bar-leg-dot" style="background:#f87171;"></div><div class="bar-leg-label">Hot 🔥</div><div class="bar-leg-val" style="color:#f87171;">3</div></div>
+          <div class="bar-leg"><div class="bar-leg-dot" style="background:#34d399;"></div><div class="bar-leg-label">Won</div><div class="bar-leg-val" style="color:#34d399;">2</div></div>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="section-label">Pipeline Stats</div>
+      <div class="card-grid three" style="margin-bottom:20px;">
+        <div class="stat-card" onclick="show('leads',document.querySelector('.sidebar-btn:nth-child(3)'))">
+          <div class="stat-label">New</div>
+          <div class="stat-value">24</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-label">Qualified</div>
+          <div class="stat-value">18</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">Outreach</div>
+          <div class="stat-value">12</div>
+          <div class="stat-sub">Active sequences</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Hot 🔥</div>
+          <div class="stat-value">3</div>
+          <div class="stat-sub">Needs a call</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-label">Won</div>
+          <div class="stat-value">2</div>
+          <div class="stat-sub">Active clients</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Dead</div>
+          <div class="stat-value" style="color:var(--muted);">8</div>
+          <div class="stat-sub">Closed out</div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="section-label">Quick Actions</div>
+      <div class="quick-grid">
+        <button class="quick-btn" onclick="show('leads',null)">
+          <div class="quick-icon" style="background:rgba(0,212,170,0.1); border:1px solid rgba(0,212,170,0.2);">＋</div>
+          <div><div class="quick-label">New Leads</div><div class="quick-sub">Review &amp; qualify</div></div>
+        </button>
+        <button class="quick-btn" onclick="show('clients',null)">
+          <div class="quick-icon" style="background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.2);">★</div>
+          <div><div class="quick-label">Clients</div><div class="quick-sub">View MRR &amp; accounts</div></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- LEADS PAGE -->
+    <div id="leads" class="page">
+      <h1 class="page-title">Leads</h1>
+      <p class="page-sub">Pipeline by stage</p>
+
+      <div class="lead-tabs">
+        <button class="tab active">All</button>
+        <button class="tab">New</button>
+        <button class="tab">Qualified</button>
+        <button class="tab">Outreach</button>
+        <button class="tab" style="color:#f87171;">Hot 🔥</button>
+      </div>
+
+      <div class="lead-card hot" onclick="show('detail',null)">
+        <div class="lead-info">
+          <div class="lead-name">Hartley Plumbing Ltd</div>
+          <div class="lead-meta">West Yorkshire · Plumbing &amp; heating installation</div>
+          <div class="lead-weakness">⚠ No website found. No social media presence. Company registered 8 years ago — missing all digital.</div>
+          <div class="lead-time">Replied 14 min ago · HOT</div>
+        </div>
+        <div>
+          <div class="badge high">95</div>
+        </div>
+      </div>
+
+      <div class="lead-card" onclick="show('detail',null)">
+        <div class="lead-info">
+          <div class="lead-name">Crestwood Electrical Ltd</div>
+          <div class="lead-meta">West Midlands · Electrical installation</div>
+          <div class="lead-weakness">⚠ Website exists but Lighthouse mobile score of 22/100. SSL certificate expired 6 months ago.</div>
+          <div class="lead-time">Outreach Day 4 · sent follow-up</div>
+        </div>
+        <div><div class="badge mid">65</div></div>
+      </div>
+
+      <div class="lead-card" onclick="show('detail',null)">
+        <div class="lead-info">
+          <div class="lead-name">Blue Ridge Hospitality LLP</div>
+          <div class="lead-meta">Greater Manchester · Hotel &amp; restaurant</div>
+          <div class="lead-weakness">⚠ 3 Google reviews, no Facebook page, site last modified 3 years ago.</div>
+          <div class="lead-time">Outreach Day 0 · initial sent</div>
+        </div>
+        <div><div class="badge mid">55</div></div>
+      </div>
+
+      <div class="lead-card">
+        <div class="lead-info">
+          <div class="lead-name">Penton &amp; Associates Solicitors LLP</div>
+          <div class="lead-meta">Surrey · Legal services</div>
+          <div class="lead-weakness">⚠ Website present but no SSL, no social media, 2 Google reviews.</div>
+          <div class="lead-time">Qualified · not yet personalised</div>
+        </div>
+        <div><div class="badge mid">50</div></div>
+      </div>
+
+      <div class="lead-card">
+        <div class="lead-info">
+          <div class="lead-name">Oakfield Roofing Ltd</div>
+          <div class="lead-meta">West Yorkshire · Roofing &amp; waterproofing</div>
+          <div class="lead-weakness">⚠ No website found. Company registered 2021.</div>
+          <div class="lead-time">New · not yet qualified</div>
+        </div>
+        <div><div class="badge high">88</div></div>
+      </div>
+
+      <div class="lead-card">
+        <div class="lead-info">
+          <div class="lead-name">Greenleaf Garden Services Ltd</div>
+          <div class="lead-meta">Surrey · Landscape gardening</div>
+          <div class="lead-weakness">⚠ Good website but zero reviews anywhere online, no social presence.</div>
+          <div class="lead-time">New · not yet qualified</div>
+        </div>
+        <div><div class="badge low">30</div></div>
+      </div>
+    </div>
+
+    <!-- LEAD DETAIL PAGE -->
+    <div id="detail" class="page">
+      <button class="back-btn" onclick="show('leads',null)">← Leads</button>
+
+      <div class="detail-header">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <div class="company-title">Hartley Plumbing Ltd</div>
+            <div class="company-meta">Plumbing &amp; heating installation · West Yorkshire</div>
+          </div>
+          <div class="badge high" style="font-size:16px; padding:6px 14px;">95</div>
+        </div>
+        <div style="margin-top:10px;">
+          <span style="color:var(--teal); font-size:13px;">🌐 No website found</span>
+        </div>
+      </div>
+
+      <div class="weakness-box">
+        <div class="weakness-label">Weakness Analysis</div>
+        <div class="weakness-text">No website found, no SSL possible, no social media presence detected (Facebook or Instagram). 2 Google reviews only. Company incorporated 2016 — 8 years old with zero digital footprint.</div>
+      </div>
+
+      <!-- Score bar -->
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div class="section-label" style="margin:0;">Lead Score</div>
+          <div style="font-family:'Sora',sans-serif; font-weight:800; font-size:22px;">95<span style="color:var(--muted); font-size:13px; font-weight:400;">/100</span></div>
+        </div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" style="width:95%; background:linear-gradient(90deg,#f87171,#fb923c);"></div>
+        </div>
+        <div class="score-labels"><span>Low (buy signals)</span><span>High (urgent need)</span></div>
+      </div>
+
+      <!-- Email previews -->
+      <div class="section-label">Generated Email Copy</div>
+      <div class="email-preview">
+        <div class="email-header">
+          <div>
+            <div class="email-subject">No website? Your competitors in Leeds have one</div>
+            <div style="color:var(--muted); font-size:11px; margin-top:3px;">Initial · via Gemini 2.5 Flash-Lite</div>
+          </div>
+          <span style="color:var(--muted);">▾</span>
+        </div>
+        <div class="email-body">Hi James,
+
+I noticed Hartley Plumbing Ltd doesn't have a website — while most plumbers in West Yorkshire now get 60–70% of enquiries online.
+
+I build websites for UK trades companies and handle their Google presence. I could have something live for Hartley within a week.
+
+Worth a quick chat?
+
+Your Name | Brightwick
+123 Your Street, Leeds, LS1 1AA
+
+If you'd prefer not to hear from us, reply with STOP and we'll remove you immediately.</div>
+      </div>
+
+      <div class="email-preview">
+        <div class="email-header">
+          <div>
+            <div class="email-subject">Your competitors in West Yorkshire are online</div>
+            <div style="color:var(--muted); font-size:11px; margin-top:3px;">Follow-up Day 4 · via Gemini 2.5 Flash-Lite</div>
+          </div>
+          <span style="color:var(--muted);">▾</span>
+        </div>
+      </div>
+
+      <div class="email-preview" style="margin-bottom:24px;">
+        <div class="email-header">
+          <div>
+            <div class="email-subject">Last message from me, James</div>
+            <div style="color:var(--muted); font-size:11px; margin-top:3px;">Final Day 9 · via Groq</div>
+          </div>
+          <span style="color:var(--muted);">▾</span>
+        </div>
+      </div>
+
+      <div class="hot-alert" style="margin-bottom:20px;">
+        <div class="hot-alert-title">🔥 Reply detected 14 minutes ago</div>
+        <div style="color:rgba(255,255,255,0.7); font-size:13px; line-height:1.5;">"Hi, yes we've been meaning to sort a website for ages. Can we have a call this week?"</div>
+      </div>
+
+      <button class="action-btn won">Mark as Won 🎉</button>
+      <button class="action-btn dead">Mark as Dead</button>
+    </div>
+
+    <!-- CLIENTS PAGE -->
+    <div id="clients" class="page">
+      <h1 class="page-title">Clients</h1>
+      <p class="page-sub">Active accounts</p>
+
+      <div class="mrr-grid">
+        <div class="mrr-card teal">
+          <div class="mrr-label">MRR</div>
+          <div class="mrr-val">£700</div>
+          <div class="mrr-sub">Monthly recurring</div>
+        </div>
+        <div class="mrr-card">
+          <div class="mrr-label">ARR</div>
+          <div class="mrr-val">£8,400</div>
+          <div class="mrr-sub">Annual run rate</div>
+        </div>
+      </div>
+
+      <div class="section-label">2 active clients</div>
+
+      <div class="client-card">
+        <div class="client-avatar">HP</div>
+        <div class="client-info">
+          <div class="client-name">Hartley Plumbing Ltd</div>
+          <div class="client-contact">James Hartley · james@hartleyplumbing.co.uk</div>
+          <div class="client-date">Won 28 May 2026 · <span style="color:var(--teal);">brightwick.pages.dev/hartley</span></div>
+        </div>
+        <div>
+          <div class="client-mrr">£400</div>
+          <div class="client-mrr-sub">/month</div>
+        </div>
+      </div>
+
+      <div class="client-card">
+        <div class="client-avatar">BR</div>
+        <div class="client-info">
+          <div class="client-name">Blue Ridge Hospitality LLP</div>
+          <div class="client-contact">Sarah Chen · sarah@blueridgehospitality.co.uk</div>
+          <div class="client-date">Won 15 May 2026 · <span style="color:var(--teal);">brightwick.pages.dev/blueridge</span></div>
+        </div>
+        <div>
+          <div class="client-mrr">£300</div>
+          <div class="client-mrr-sub">/month</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom nav (mobile) -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="show('home',this)" id="nav-home">
+      <span class="icon">⊞</span>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-btn" onclick="show('leads',this)" id="nav-leads">
+      <span class="icon">◎</span>
+      <span>Leads</span>
+    </button>
+    <button class="nav-btn" onclick="show('clients',this)" id="nav-clients">
+      <span class="icon">★</span>
+      <span>Clients</span>
+    </button>
+    <button class="nav-btn" onclick="show('detail',this)" id="nav-detail">
+      <span class="icon">⊙</span>
+      <span>Detail</span>
+    </button>
+  </nav>
+
+</div>
+
+<script>
+function show(pageId, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+
+  // Update bottom nav
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const navBtn = document.getElementById('nav-' + pageId);
+  if (navBtn) navBtn.classList.add('active');
+
+  // Update sidebar
+  document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+  if (btn && btn.classList && btn.classList.contains('sidebar-btn')) btn.classList.add('active');
+
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
