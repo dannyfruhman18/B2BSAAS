@@ -1,0 +1,48 @@
+{
+  "name": "06 - Weekly Digest (Monday 9am)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 9 * * 1" }]
+        }
+      },
+      "name": "Monday 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.PIPELINE_API_URL }}/api/pipeline/stats",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Fetch Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SENDER_EMAIL }}",
+        "toEmail": "={{ $env.OWNER_EMAIL }}",
+        "subject": "=Brightwick weekly digest — {{ $now.toFormat('d MMM yyyy') }}",
+        "emailFormat": "text",
+        "text": "=Good morning.\n\nYour Brightwick pipeline this week:\n\n🟢 New leads scraped:   {{ $json.new }}\n🔵 Qualified:          {{ $json.qualified }}\n✉️  In outreach:        {{ $json.outreach }}\n🔥 Hot (need call):    {{ $json.hot }}\n✅ Won:                {{ $json.won }}\n\nOpen dashboard: {{ $env.DASHBOARD_URL }}\n\n---\nBrightwick"
+      },
+      "name": "Send Digest",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Monday 9am": { "main": [[{ "node": "Fetch Stats", "type": "main", "index": 0 }]] },
+    "Fetch Stats": { "main": [[{ "node": "Send Digest", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "brightwick" }]
+}

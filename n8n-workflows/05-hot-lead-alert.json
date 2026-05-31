@@ -1,0 +1,37 @@
+{
+  "name": "05 - Hot Lead Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hot-lead",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook: Hot Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "brightwick-hot-lead"
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SENDER_EMAIL }}",
+        "toEmail": "={{ $env.OWNER_EMAIL }}",
+        "subject": "=🔥 HOT LEAD: {{ $json.company_name }}",
+        "emailFormat": "text",
+        "text": "=A reply has come in from {{ $json.company_name }} ({{ $json.region }}).\n\nThey replied to your email. Time to make the sales call.\n\nCompany: {{ $json.company_name }}\nRegion: {{ $json.region }}\nWeakness: {{ $json.weakness_summary }}\n\nOpen your dashboard to view the reply and mark as Won:\n{{ $env.DASHBOARD_URL }}/leads/{{ $json.id }}\n\n---\nBrightwick pipeline"
+      },
+      "name": "Send Alert Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: Hot Lead": { "main": [[{ "node": "Send Alert Email", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "brightwick" }]
+}

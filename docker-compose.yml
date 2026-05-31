@@ -1,0 +1,86 @@
+# Brightwick — Full stack Docker Compose
+# Runs on Oracle Cloud ARM A1 (ARM64 architecture)
+# Services: n8n (automation) + pipeline API + SQLite data volume
+#
+# Usage:
+#   cp .env.example .env && nano .env   # fill in your keys
+#   docker compose up -d
+#   docker compose logs -f
+
+services:
+
+  # ---------------------------------------------------------------
+  # n8n — visual automation engine
+  # Reach at: http://YOUR_IP:5678  (or https://n8n.brightwick.co.uk after DNS)
+  # ---------------------------------------------------------------
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-brightwick}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:?Set N8N_PASSWORD in .env}
+      - N8N_SECURE_COOKIE=false
+      - GENERIC_TIMEZONE=Europe/London
+      - N8N_HOST=0.0.0.0
+      - WEBHOOK_URL=http://pipeline:8000
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - pipeline
+    networks:
+      - brightwick
+
+  # ---------------------------------------------------------------
+  # Pipeline — Python FastAPI + all pipeline scripts
+  # API at: http://YOUR_IP:8000/api/...
+  # ---------------------------------------------------------------
+  pipeline:
+    build:
+      context: ./pipeline
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DB_PATH=/data/brightwick.db
+    volumes:
+      - pipeline_data:/data
+      - ./pipeline:/app          # hot-reload friendly for dev
+    command: python pipeline_runner.py serve
+    networks:
+      - brightwick
+
+  # ---------------------------------------------------------------
+  # Scheduler — runs pipeline jobs on a cron schedule
+  # Separate container so the API stays responsive
+  # ---------------------------------------------------------------
+  scheduler:
+    build:
+      context: ./pipeline
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - DB_PATH=/data/brightwick.db
+    volumes:
+      - pipeline_data:/data
+      - ./pipeline:/app
+    command: python scheduler.py
+    depends_on:
+      - pipeline
+    networks:
+      - brightwick
+
+volumes:
+  n8n_data:
+  pipeline_data:
+
+networks:
+  brightwick:
+    driver: bridge
